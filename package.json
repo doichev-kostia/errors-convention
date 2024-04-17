@@ -3,19 +3,22 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-  },
+  "type": "module",
+  "scripts": {},
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@doichev-kostia/config": "^0.0.1",
     "@types/node": "^20.10.4",
+    "pino-pretty": "^11.0.0",
     "tsx": "^4.6.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@effect/schema": "^0.53.3",
-    "effect": "2.0.0-next.60"
+    "ajv-i18n": "^4.2.0",
+    "fastify": "^4.26.2",
+    "pino": "^8.20.0",
+    "pino-std-serializers": "^6.2.2"
   }
 }

@@ -1,0 +1,28 @@
+# Throw an API error
+POST http://[::1]:3000/throw
+Content-Type: application/json
+
+{}
+
+###
+
+# Get a non-existing user
+GET http://[::1]:3000/users/123
+Content-Type: application/json
+
+{}
+
+### Pass invalid body
+POST http://[::1]:3000/users
+Content-Type: application/json
+
+{
+  "firstName": 123,
+  "lastName": true,
+  "pets": [
+    {
+      "name": 123,
+      "type": true
+    }
+  ]
+}
