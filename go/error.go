@@ -62,18 +62,18 @@ type ApiError struct {
 }
 
 // NewApiError constructs the Error with details being ErrorInfo | BadRequest | LocalizedMessage
-func NewApiError(status ErrorCode, err error, details []ErrorDetail) ApiError {
+func NewApiError(status ErrorCode, err string, details []ErrorDetail) ApiError {
 	if details == nil {
 		details = make([]ErrorDetail, 0)
 	}
 	return ApiError{
 		status,
-		err.Error(),
+		err,
 		details,
 	}
 }
 
-func (e *ApiError) Error() string {
+func (e ApiError) Error() string {
 	return fmt.Sprintf("ApiError { code: %s, message: %s, details: %+v }", e.Code, e.Message, e.Details)
 }
 
@@ -188,8 +188,8 @@ func NewLocalizedMessage(locale, message string) LocalizedMessage {
 }
 
 // WriteHTTPResponse writes the ApiError as an HTTP response
-func (e *ApiError) WriteHTTPResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
+func (e ApiError) WriteHTTPResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(StatusCodeMap[e.Code])
 	return json.NewEncoder(w).Encode(e)
 }
