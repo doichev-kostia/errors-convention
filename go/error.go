@@ -51,18 +51,20 @@ func (e ErrorCode) String() string {
 	return string(e)
 }
 
+type ErrorDetail any
+
 // ApiError represents the main API error structure
 type ApiError struct {
 	Code    ErrorCode `json:"code"`
 	Message string    `json:"message"`
 	// Details provide more context to an error. The predefined structs are ErrorInfo | BadRequest | LocalizedMessage
-	Details []any `json:"details"`
+	Details []ErrorDetail `json:"details"`
 }
 
 // NewApiError constructs the Error with details being ErrorInfo | BadRequest | LocalizedMessage
-func NewApiError(status ErrorCode, err error, details []any) ApiError {
+func NewApiError(status ErrorCode, err error, details []ErrorDetail) ApiError {
 	if details == nil {
-		details = make([]interface{}, 0)
+		details = make([]ErrorDetail, 0)
 	}
 	return ApiError{
 		status,
