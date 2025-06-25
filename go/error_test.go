@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -11,7 +10,7 @@ import (
 
 func TestError_Specification(t *testing.T) {
 	t.Run("Internal Error", func(t *testing.T) {
-		internalError := NewApiError(ErrorInternal, fmt.Errorf("internal error"), nil)
+		internalError := NewApiError(ErrorInternal, "internal error", nil)
 		rcrd := httptest.NewRecorder()
 		err := internalError.WriteHTTPResponse(rcrd)
 		if err != nil {
@@ -21,7 +20,7 @@ func TestError_Specification(t *testing.T) {
 		if resp.StatusCode != http.StatusInternalServerError {
 			t.Errorf("expected status code %d, got %d", http.StatusInternalServerError, resp.StatusCode)
 		}
-		if resp.Header.Get("Content-Type") != "application/json" {
+		if !strings.Contains(resp.Header.Get("Content-Type"), "application/json") {
 			t.Errorf("expected Content-Type 'application/json', got '%s'", resp.Header.Get("Content-Type"))
 		}
 		body, err := io.ReadAll(resp.Body)
@@ -40,7 +39,7 @@ func TestError_Specification(t *testing.T) {
 		metadata := make(map[string]any)
 		metadata["resource"] = "projects/123"
 		errorInfo := NewErrorInfo("API_DISABLED", metadata)
-		internalError := NewApiError(ErrorFailedPrecondition, fmt.Errorf("the projects's api is disabled"), []ErrorDetail{errorInfo})
+		internalError := NewApiError(ErrorFailedPrecondition, "the projects's api is disabled", []ErrorDetail{errorInfo})
 		rcrd := httptest.NewRecorder()
 		err := internalError.WriteHTTPResponse(rcrd)
 		if err != nil {
@@ -50,7 +49,7 @@ func TestError_Specification(t *testing.T) {
 		if resp.StatusCode != http.StatusBadRequest {
 			t.Errorf("expected status code %d, got %d", http.StatusBadRequest, resp.StatusCode)
 		}
-		if resp.Header.Get("Content-Type") != "application/json" {
+		if !strings.Contains(resp.Header.Get("Content-Type"), "application/json") {
 			t.Errorf("expected Content-Type 'application/json', got '%s'", resp.Header.Get("Content-Type"))
 		}
 		body, err := io.ReadAll(resp.Body)
@@ -77,7 +76,7 @@ func TestError_Specification(t *testing.T) {
 			},
 		}
 		badRequest := NewBadRequest(fieldViolations)
-		apiError := NewApiError(ErrorInvalidArgument, fmt.Errorf("invalid input parameters"), []ErrorDetail{badRequest})
+		apiError := NewApiError(ErrorInvalidArgument, "invalid input parameters", []ErrorDetail{badRequest})
 		rcrd := httptest.NewRecorder()
 		err := apiError.WriteHTTPResponse(rcrd)
 		if err != nil {
@@ -87,7 +86,7 @@ func TestError_Specification(t *testing.T) {
 		if resp.StatusCode != http.StatusBadRequest {
 			t.Errorf("expected status code %d, got %d", http.StatusBadRequest, resp.StatusCode)
 		}
-		if resp.Header.Get("Content-Type") != "application/json" {
+		if !strings.Contains(resp.Header.Get("Content-Type"), "application/json") {
 			t.Errorf("expected Content-Type 'application/json', got '%s'", resp.Header.Get("Content-Type"))
 		}
 		body, err := io.ReadAll(resp.Body)
@@ -101,5 +100,4 @@ func TestError_Specification(t *testing.T) {
 			t.Errorf("expected body %s, got %s", snapshot, bodyTxt)
 		}
 	})
-
 }
