@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import * as assert from "node:assert";
 import {
 	ApiError,
 	type BadRequest,
@@ -8,7 +9,8 @@ import {
 	NewErrorInfo,
 	StatusCode
 } from "./error.js";
-import * as assert from "node:assert";
+import { z } from "zod";
+import { apiErrorFromZodError } from "./transformers.js";
 
 test("Internal Error", async function internalErrorTest() {
 	let err = new ApiError(ErrorCode.Internal, "internal error");
@@ -90,3 +92,23 @@ test("Error from response", async function errorFromResponseTest() {
 	assert.equal(badRequest.fieldViolations[0].field, "email", `error_from_response_test.field_violations[0].field_mismatch expected=email got=${badRequest.fieldViolations[0].field}`);
 	assert.equal(badRequest.fieldViolations[0].description, "must be a valid email address", `error_from_response_test.field_violations[0].description_mismatch expected="must be a valid email address" got="${badRequest.fieldViolations[0].description}"`);
 });
+
+test("Error from zod error", async function errorFromZodErrorTest() {
+	let schema = z.object({
+		email: z.string(),
+		password: z.string().min(8)
+	});
+	let parseResult = schema.safeParse({
+		password: "1",
+	});
+	assert.ok(!parseResult.success, `error_from_zod_error_test.parse_success expected=false`);
+
+	let apiErr = apiErrorFromZodError(parseResult.error);
+	assert.equal(apiErr.code, ErrorCode.InvalidArgument, `error_from_zod_error_test.code_mismatch expected=INVALID_ARGUMENT got=${apiErr.code}`);
+	let details = apiErr.details[0];
+	assert.equal(details["@type"], "BAD_REQUEST", `error_from_zod_error_test.details_type_mismatch expected=BAD_REQUEST got=${details["@type"]}`);
+	let badRequest = details as BadRequest;
+	assert.equal(badRequest.fieldViolations.length, 2, `error_from_zod_error_test.field_violations_length_mismatch expected=2 got=${badRequest.fieldViolations.length}`);
+	assert.equal(badRequest.fieldViolations[0].field, "email", `error_from_zod_error_test.field_violations[0].field_mismatch expected=email got=${badRequest.fieldViolations[0].field}`);
+	assert.equal(badRequest.fieldViolations[1].field, "password", `error_from_zod_error_test.field_violations[1].field_mismatch expected=password got=${badRequest.fieldViolations[1].field}`);
+})
