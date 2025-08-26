@@ -27,19 +27,30 @@ export function formValidationErrorFromZodError(err: ZodError): FormValidationEr
 }
 
 export function apiErrorFromZodError(err: ZodError): ApiError {
-	let flat = flattenError(err)
 	let msg = "Validation Error";
-	if (flat.formErrors.length > 0) {
-		msg += ": " + flat.formErrors.join("; ")
+	let violations = new Map<string, string>();
+	for (let issue of err.issues) {
+		if (issue.path.length > 0) {
+			let key = issue.path.join(".");
+			console.log({key, description: issue.message });
+
+			let existing = violations.get(key);
+			if (existing != null) {
+				violations.set(key, existing + "; " + issue.message);
+			} else {
+				violations.set(key, issue.message);
+			}
+		} else {
+			msg += ": " + issue.message;
+		}
 	}
 	let fieldViolations: FieldViolation[] = [];
 
-	for (const [k, v] of Object.entries(flat.fieldErrors)) {
-		let description = ((v || []) as Array<string>).join("; ");
+	for (const [k, v] of violations.entries()) {
 		fieldViolations.push({
 			field: k,
-			description,
-		} satisfies FieldViolation);
+			description: v,
+		});
 	}
 
 	return new ApiError(ErrorCode.InvalidArgument, msg, [NewBadRequest(fieldViolations)])
